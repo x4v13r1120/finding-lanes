@@ -3,7 +3,7 @@ self driving course i found online
 https://www.udemy.com/course/applied-deep-learningtm-the-complete-self-
 driving-car-course/learn/lecture/11241778#content
 _author_ Xavier Naranjo 11/27/2019
-using anaconda 3.7 download
+using python 3.8 download
 """
 import cv2
 import numpy as np
@@ -22,9 +22,6 @@ used to find the slopes and intercepts for our lines
 
 
 def average_slope_intercept(image, lines):
-    """
-basically extending our lines
-    """
     left_fit = []
     right_fit = []
     if lines is None:
@@ -39,19 +36,17 @@ basically extending our lines
             else:
                 right_fit.append((slope, intercept))
     # add more weight to longer lines
-    left_fit_average = np.average(left_fit, axis=0)
-    right_fit_average = np.average(right_fit, axis=0)
-    left_line = make_points(image, left_fit_average)
-    right_line = make_points(image, right_fit_average)
-    averaged_lines = [left_line, right_line]
-    return averaged_lines
+    if len(left_fit) and len(right_fit):
+        ##over-simplified if statement (should give you an idea of why the error occurs)
+        left_fit_average = np.average(left_fit, axis=0)
+        right_fit_average = np.average(right_fit, axis=0)
+        left_line = make_points(image, left_fit_average)
+        right_line = make_points(image, right_fit_average)
+        averaged_lines = [left_line, right_line]
+        return averaged_lines
 
 
-# noinspection PyUnusedLocal
 def canny(img):
-    """
-    :return: canny image
-    """
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     kernel = 5
     blur = cv2.GaussianBlur(gray, (kernel, kernel), 0)
@@ -60,9 +55,6 @@ def canny(img):
 
 
 def display_lines(img, lines):
-    """
-to detect lines
-    """
     line_image = np.zeros_like(img)
     if lines is not None:
         for line in lines:
@@ -72,11 +64,6 @@ to detect lines
 
 
 def region_of_interest(canny):
-    """
-    creates triangle within image
-    had to change to polygon because of an exception where fill poly fills an
-    area of polygons instead of an array to one polygon
-    """
     height = canny.shape[0]
     width = canny.shape[1]
     mask = np.zeros_like(canny)
@@ -104,12 +91,11 @@ def region_of_interest(canny):
 # cv2.waitKey(0)
 
 cap = cv2.VideoCapture("test2.mp4")
-while cap.isOpened():
+while (cap.isOpened()):
     _, frame = cap.read()
     canny_image = canny(frame)
     cropped_canny = region_of_interest(canny_image)
-    lines = cv2.HoughLinesP(cropped_canny, 2, np.pi / 180, 100, np.array([]),
-                            minLineLength=40, maxLineGap=5)
+    lines = cv2.HoughLinesP(cropped_canny, 2, np.pi / 180, 100, np.array([]), minLineLength=40, maxLineGap=5)
     averaged_lines = average_slope_intercept(frame, lines)
     line_image = display_lines(frame, averaged_lines)
     combo_image = cv2.addWeighted(frame, 0.8, line_image, 1, 1)
